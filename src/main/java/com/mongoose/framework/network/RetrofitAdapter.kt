@@ -4,6 +4,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
 // Created by mongoose on 2021/02/16
@@ -16,12 +17,16 @@ class RetrofitAdapter<I : Any> private constructor(builder: Builder<I>) {
 
     var useLoggingInterceptor: Boolean = false
 
+    var useRxAdapterFactory: Boolean = false
+
     init {
         headerMap = builder.headerMap
 
         useGsonConverterFactory = builder.useGsonConverterFactory
 
         useLoggingInterceptor = builder.useLoggingInterceptor
+
+        useRxAdapterFactory = builder.useRxAdapterFactory
     }
 
     class Builder<I : Any>(val spec: Class<I>, private val baseUrl: String) {
@@ -31,6 +36,8 @@ class RetrofitAdapter<I : Any> private constructor(builder: Builder<I>) {
         var useGsonConverterFactory: Boolean = false
 
         var useLoggingInterceptor: Boolean = false
+
+        var useRxAdapterFactory: Boolean = false
 
         fun build() = RetrofitAdapter(this).create(spec, baseUrl)
     }
@@ -63,6 +70,9 @@ class RetrofitAdapter<I : Any> private constructor(builder: Builder<I>) {
         Retrofit.Builder().apply {
             baseUrl(baseUrl)
             client(createOkHttpClient())
+            if (useRxAdapterFactory) {
+                addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+            }
             if (useGsonConverterFactory) {
                 addConverterFactory(GsonConverterFactory.create())
             }
